@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Emprunts indivis et obligataires</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1d2433;--muted:#5d6678;--accent:#2b5cd6;--line:#dde1ea;--head:#eaf0ff;--ok:#0f7b4b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171f;--card:#1d222d;--text:#e8ebf2;--muted:#9aa3b5;--accent:#7ca0ff;--line:#323a4a;--head:#26304a;--ok:#4fd197;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171f;--card:#1d222d;--text:#e8ebf2;--muted:#9aa3b5;--accent:#7ca0ff;--line:#323a4a;--head:#26304a;--ok:#4fd197;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+header,main{max-width:980px;margin:auto;padding:16px}
+h1{margin:0;font-size:1.5rem}header p{margin:4px 0 0;color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:.95rem}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.formula{background:var(--head);border-radius:8px;padding:10px 14px;font-family:Georgia,"Times New Roman",serif;margin:0 0 14px;line-height:1.9}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+label{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);gap:4px}
+input,select{padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font-size:1rem;width:100%}
+.go{margin-top:14px;background:var(--accent);color:#fff;border:0;padding:11px 20px;border-radius:8px;font-size:1rem;cursor:pointer}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
+.res div{background:var(--head);border-radius:8px;padding:10px 12px}
+.res small{display:block;color:var(--muted)}.res b{font-size:1.1rem;color:var(--ok)}
+.wrap{overflow-x:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;min-width:600px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th{background:var(--head)}tfoot td{font-weight:700;background:var(--head)}
+.err{color:#c62828;margin-top:10px}.hint{color:var(--muted);font-size:.85rem;margin-top:10px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Emprunts indivis et obligataires</h1>
+  <p>Chapitre 4 : formules et tableaux d’amortissement du cours.</p>
+</header>
+<main>
+<div class="tabs" id="tabs">
+  <button class="on" data-t="L">Emprunt indivis</button>
+  <button data-t="B">Emprunt obligataire</button>
+  <button data-t="X">Retrouver i, a, m₁, C₀</button>
+</div>
+
+<section id="L" class="card">
+  <div class="grid">
+    <label>Mode de remboursement
+      <select id="L_mode" onchange="showF()">
+        <option value="a">Annuités constantes</option>
+        <option value="m">Amortissement constant</option>
+        <option value="f">In fine</option>
+      </select></label>
+    <label>Capital emprunté C₀<input id="L_c" type="number" value="2442040" step="any"></label>
+    <label>Taux i (%)<input id="L_i" type="number" value="10" step="any"></label>
+    <label>Nombre d’annuités n<input id="L_n" type="number" value="5" step="1"></label>
+    <label>Après p annuités, p =<input id="L_p" type="number" value="2" step="1"></label>
+  </div>
+  <div class="formula" id="L_f" style="margin-top:14px"></div>
+  <button class="go" onclick="loan()">Calculer</button>
+  <div id="L_out"></div>
+</section>
+
+<section id="B" class="card hide">
+  <div class="grid">
+    <label>Mode de remboursement
+      <select id="B_mode" onchange="showF()">
+        <option value="a">Annuités constantes</option>
+        <option value="m">Amortissement constant</option>
+        <option value="f">In fine</option>
+      </select></label>
+    <label>Nombre d’obligations N<input id="B_N" type="number" value="1000" step="1"></label>
+    <label>Valeur nominale V_N<input id="B_vn" type="number" value="100" step="any"></label>
+    <label>Prix d’émission V_E<input id="B_ve" type="number" value="98" step="any"></label>
+    <label>Valeur de remboursement V_R<input id="B_vr" type="number" value="105" step="any"></label>
+    <label>Taux facial i (%)<input id="B_i" type="number" value="6" step="any"></label>
+    <label>Nombre d’annuités n<input id="B_n" type="number" value="5" step="1"></label>
+  </div>
+  <div class="formula" id="B_f" style="margin-top:14px"></div>
+  <button class="go" onclick="bond()">Calculer</button>
+  <div id="B_out"></div>
+</section>
+
+<section id="X" class="card hide">
+  <div class="formula">I<sub>n</sub> = m<sub>n</sub>·i &nbsp;|&nbsp; I<sub>n−1</sub> = m<sub>n</sub>(1 + 1/(1+i))·i &nbsp;⇒&nbsp; 1 + i = 1 / (I<sub>n−1</sub>/I<sub>n</sub> − 1)<br>
+  m<sub>n</sub> = I<sub>n</sub>/i &nbsp;|&nbsp; a = m<sub>n</sub>(1+i) &nbsp;|&nbsp; m₁ = (I₁ − I₂)/i &nbsp;|&nbsp; C₀ = (a − m₁)/i</div>
+  <p class="hint" style="margin-top:0">Emprunt indivis à annuités constantes : données de l’exemple du cours (pages 12 à 15).</p>
+  <div class="grid">
+    <label>Intérêt de l’avant-dernière année I<sub>n−1</sub><input id="X_a" type="number" value="12300" step="any"></label>
+    <label>Intérêt de la dernière année I<sub>n</sub><input id="X_b" type="number" value="6300" step="any"></label>
+    <label>Différence I₁ − I₂<input id="X_c" type="number" value="4061.04" step="any"></label>
+  </div>
+  <button class="go" onclick="inverse()">Résoudre</button>
+  <div id="X_out"></div>
+</section>
+</main>
+
+<script>
+function F(x,d){return x.toLocaleString("fr-FR",{minimumFractionDigits:d===undefined?2:d,maximumFractionDigits:d===undefined?2:d})}
+function $(id){return document.getElementById(id)}
+function N(id){return parseFloat($(id).value)}
+function err(id,m){$(id).innerHTML='<div class="err">'+m+'</div>'}
+function box(a){return '<div class="res">'+a.map(function(x){return '<div><small>'+x[0]+'</small><b>'+x[1]+'</b></div>'}).join('')+'</div>'}
+function tbl(head,rows,tot){
+  var h='<div class="wrap"><table><thead><tr>'+head.map(function(t){return '<th>'+t+'</th>'}).join('')+'</tr></thead><tbody>';
+  rows.forEach(function(r){h+='<tr>'+r.map(function(v,j){return '<td>'+(j===0?v:v)+'</td>'}).join('')+'</tr>'});
+  return h+'</tbody><tfoot><tr>'+tot.map(function(v){return '<td>'+v+'</td>'}).join('')+'</tr></tfoot></table></div>';
+}
+var FL={
+ a:'a = C₀ · i / (1 − (1+i)<sup>−n</sup>) &nbsp;|&nbsp; m₁ = C₀ · i / ((1+i)<sup>n</sup> − 1) &nbsp;|&nbsp; m<sub>p+1</sub> = m<sub>p</sub>(1+i) &nbsp;|&nbsp; R<sub>p</sub> = C₀ · ((1+i)<sup>p</sup> − 1) / ((1+i)<sup>n</sup> − 1) &nbsp;|&nbsp; dette non amortie = C₀ − R<sub>p</sub>',
+ m:'m = C₀ / n &nbsp;|&nbsp; I<sub>p</sub> = C<sub>p−1</sub> · i &nbsp;|&nbsp; a<sub>p</sub> = I<sub>p</sub> + m &nbsp;|&nbsp; a<sub>p+1</sub> = a<sub>p</sub> − (C₀/n) · i',
+ f:'I = C₀ · i (chaque période) &nbsp;|&nbsp; a₁ = … = a<sub>n−1</sub> = I &nbsp;|&nbsp; a<sub>n</sub> = C₀ + I'
+};
+var FB={
+ a:'c = V<sub>N</sub> · i &nbsp;|&nbsp; r = c / V<sub>R</sub> &nbsp;|&nbsp; a = N · V<sub>R</sub> · r / (1 − (1+r)<sup>−n</sup>) &nbsp;|&nbsp; m<sub>p+1</sub> = m<sub>p</sub>(1+r) &nbsp;|&nbsp; a<sub>p</sub> = N<sub>p−1</sub> · c + m<sub>p</sub> · V<sub>R</sub>',
+ m:'c = V<sub>N</sub> · i &nbsp;|&nbsp; m = N / n titres par tirage &nbsp;|&nbsp; I<sub>p</sub> = N<sub>p−1</sub> · c &nbsp;|&nbsp; a<sub>p</sub> = N<sub>p−1</sub> · c + m<sub>p</sub> · V<sub>R</sub>',
+ f:'c = V<sub>N</sub> · i &nbsp;|&nbsp; a = N · c chaque année &nbsp;|&nbsp; a<sub>n</sub> = N · c + N · V<sub>R</sub>'
+};
+function showF(){$("L_f").innerHTML=FL[$("L_mode").value];$("B_f").innerHTML=FB[$("B_mode").value]}
+
+function loan(){
+  var C=N("L_c"),i=N("L_i")/100,n=N("L_n"),p=N("L_p"),mode=$("L_mode").value;
+  if(!(C>0)||!(i>0)||!(n>=1)||n%1) return err("L_out","Vérifiez : C₀ > 0, i > 0 et n entier ≥ 1.");
+  var q=Math.pow(1+i,n),m1=C*i/(q-1),a0=C*i/(1-1/q),D=C,rows=[],TI=0,TM=0,TA=0,Ds=[C];
+  for(var k=1;k<=n;k++){
+    var I=D*i,m=mode==="a"?m1*Math.pow(1+i,k-1):mode==="m"?C/n:(k===n?C:0),a=I+m;
+    rows.push([k,F(D),F(I),m?F(m):"–",F(a),F(D-m)]);
+    TI+=I;TM+=m;TA+=a;D-=m;Ds.push(D);
+  }
+  var items=[];
+  if(mode==="a")items.push(["Annuité constante a",F(a0)],["Premier amortissement m₁",F(m1)]);
+  if(mode==="m")items.push(["Amortissement constant m",F(C/n)],["Première annuité a₁",rows[0][4]]);
+  if(mode==="f")items.push(["Intérêt par période I",F(C*i)]);
+  items.push(["Total des intérêts",F(TI)]);
+  if(p>=0&&p<=n&&p%1===0)items.push(["Amortie après "+p+" annuités (R<sub>p</sub>)",F(C-Ds[p])],["Dette non amortie C₀ − R<sub>p</sub>",F(Ds[p])]);
+  $("L_out").innerHTML=box(items)+tbl(["Période","Capital début C<sub>p−1</sub>","Intérêt I<sub>p</sub>","Amortissement m<sub>p</sub>","Annuité a<sub>p</sub>","Capital fin C<sub>p</sub>"],rows,["Total","",F(TI),F(TM),F(TA),""]);
+}
+
+function bond(){
+  var Nn=N("B_N"),vn=N("B_vn"),ve=N("B_ve"),vr=N("B_vr"),i=N("B_i")/100,n=N("B_n"),mode=$("B_mode").value;
+  if(!(Nn>0)||!(vn>0)||!(vr>0)||!(i>0)||!(n>=1)||n%1||Nn%1) return err("B_out","Vérifiez : N entier > 0, V_N, V_R, i > 0 et n entier ≥ 1.");
+  var c=vn*i,r=c/vr,q=Math.pow(1+r,n),cum=[0];
+  for(var k=1;k<=n;k++){
+    var v=mode==="a"?Nn*(Math.pow(1+r,k)-1)/(q-1):mode==="m"?Nn*k/n:(k===n?Nn:0);
+    cum.push(k===n?Nn:Math.round(v));
+  }
+  var rows=[],TI=0,TM=0,TA=0;
+  for(k=1;k<=n;k++){
+    var Np=Nn-cum[k-1],m=cum[k]-cum[k-1],I=Np*c,am=m*vr,a=I+am;
+    rows.push([k,F(Np,0),F(I),F(m,0),F(am),F(a),F(Nn-cum[k],0)]);
+    TI+=I;TM+=m;TA+=a;
+  }
+  var items=[["Coupon c = V_N · i",F(c)],["Taux r = c / V_R",F(r*100,3)+" %"]];
+  if(mode==="a"){items.push(["Annuité constante théorique a",F(Nn*vr*r/(1-1/q))],["m₁ théorique (titres)",F(Nn*r/(q-1),3)])}
+  if(!isNaN(ve)){items.push(["Prime d’émission V_N − V_E",F(vn-ve)])}
+  items.push(["Prime de remboursement V_R − V_N",F(vr-vn)],["Total des intérêts",F(TI)]);
+  $("B_out").innerHTML=box(items)+tbl(["Période","Titres début N<sub>p−1</sub>","Intérêt I<sub>p</sub>","Titres amortis m<sub>p</sub>","Amortissement m<sub>p</sub>·V_R","Annuité a<sub>p</sub>","Titres en circulation N<sub>p</sub>"],rows,["Total","",F(TI),F(TM,0),F(TM*vr),F(TA),""])+
+  '<div class="hint">Le nombre de titres amortis est arrondi à l’entier (le dernier tirage solde tout), donc les annuités sont « sensiblement » constantes, comme dans le cours.</div>';
+}
+
+function inverse(){
+  var A=N("X_a"),B=N("X_b"),D=N("X_c"),ratio=A/B;
+  if(!(A>0)||!(B>0)||!(D>0)||!(ratio>1)||!(ratio<2)) return err("X_out","Données incohérentes : il faut 1 < I<sub>n−1</sub> / I<sub>n</sub> < 2.");
+  var i=1/(ratio-1)-1,mn=B/i,a=mn*(1+i),m1=D/i,C=(a-m1)/i;
+  $("X_out").innerHTML=box([["Taux i",F(i*100,2)+" %"],["Dernier amortissement m<sub>n</sub>",F(mn)],["Annuité a",F(a)],["Premier amortissement m₁",F(m1)],["Capital emprunté C₀",F(C)]]);
+}
+$("tabs").addEventListener("click",function(e){
+  var t=e.target.getAttribute("data-t");if(!t)return;
+  document.querySelectorAll(".tabs button").forEach(function(b){b.classList.toggle("on",b===e.target)});
+  ["L","B","X"].forEach(function(s){$(s).classList.toggle("hide",s!==t)});
+});
+showF();loan();bond();inverse();
+</script>
+</body>
+</html>
